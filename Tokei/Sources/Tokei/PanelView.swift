@@ -25,6 +25,7 @@ struct PanelView: View {
     @State private var openCodeModelsOpen = false
     @State private var qwenCodeModelsOpen = false
     @State private var kimiCodeModelsOpen = false
+    @State private var museCodeModelsOpen = false
     @State private var openClawModelsOpen = false
     @State private var expandedModels: Set<String> = []
     @State private var mode: PanelMode = .cards
@@ -68,6 +69,7 @@ struct PanelView: View {
     @AppStorage("showQwenCode") private var showQwenCode = true
     @AppStorage("showQwenWork") private var showQwenWork = true
     @AppStorage("showKimiCode") private var showKimiCode = true
+    @AppStorage("showMuseCode") private var showMuseCode = true
     /// 默认关闭：Grok 额度只读本地日志；开启后才用登录凭据请求实时账单接口。
     @AppStorage("grokLiveQuotaEnabled") private var grokLiveQuotaEnabled = false
     /// 默认关闭：显式授权后复用 Grok Bot 或 Cursor 登录态查询官方额度。
@@ -96,7 +98,8 @@ struct PanelView: View {
             openclaw: showOpenClaw, pi: showPi, primeAgent: showPrimeAgent,
             workbuddy: showWorkBuddy, workbuddyAI: showWorkBuddyAI,
             deepseekHarness: showDeepSeekHarness,
-            opencode: showOpenCode, qwencode: showQwenCode, kimicode: showKimiCode
+            opencode: showOpenCode, qwencode: showQwenCode, kimicode: showKimiCode,
+            musecode: showMuseCode
         )
     }
 
@@ -106,7 +109,7 @@ struct PanelView: View {
          showZcode, showMimoCode,
          showOpenClaw, showPi, showWorkBuddy, showWorkBuddyAI, showDeepSeekHarness,
          showOpenCode, showQwenCode,
-         showQwenWork, showKimiCode, showPrimeAgent].filter { $0 }.count
+         showQwenWork, showKimiCode, showMuseCode, showPrimeAgent].filter { $0 }.count
     }
     private var hasMultipleDevices: Bool { store.syncEnabled && !store.peers.isEmpty }
     private var useWide: Bool { visibleCount > 2 }
@@ -375,6 +378,7 @@ struct PanelView: View {
         let cursorUsage = u.cursor.usage?.ranges.get(sel) ?? TokenUsageRange()
         let zaiUsage = u.zai.usage?.ranges.get(sel) ?? TokenUsageRange()
         let qcr = u.qwencode.ranges.get(sel), kcr = u.kimicode.ranges.get(sel)
+        let mcr = u.musecode.ranges.get(sel)
         return [
             ToolCardItem(id: "claude", name: "Claude", visible: showClaude,
                          active: cr.sessions > 0 || u.claude.q5 != nil ||
@@ -492,6 +496,8 @@ struct PanelView: View {
                          tint: Theme.qwenwork, content: AnyView(qwenWorkBlock(u.qwenwork))),
             ToolCardItem(id: "kimicode", name: "Kimi Code", visible: showKimiCode, active: kcr.sessions > 0,
                          tint: Theme.kimicode, content: AnyView(tokenUsageBlock(title: "Kimi Code", kcr, tint: Theme.kimicode, modelsOpen: $kimiCodeModelsOpen, showsCost: false, toolID: "kimicode"))),
+            ToolCardItem(id: "musecode", name: "Muse Code", visible: showMuseCode, active: mcr.sessions > 0,
+                         tint: Theme.musecode, content: AnyView(tokenUsageBlock(title: "Muse Code", mcr, tint: Theme.musecode, modelsOpen: $museCodeModelsOpen, toolID: "musecode"))),
         ]
     }
 
@@ -2606,6 +2612,7 @@ struct PanelView: View {
                 settingsRow("Qwen Code", tint: Theme.qwencode, isOn: $showQwenCode)
                 settingsRow("千问办公", tint: Theme.qwenwork, isOn: $showQwenWork)
                 settingsRow("Kimi Code", tint: Theme.kimicode, isOn: $showKimiCode)
+                settingsRow("Muse Code", tint: Theme.musecode, isOn: $showMuseCode)
             }
         }
         .onChange(of: showQoder) { enabled in
@@ -3593,7 +3600,7 @@ struct PanelView: View {
                          "sub2api", "zai", "grok", "grok_bot", "qoder", "qoderwork", "hermes",
                          "zcode", "mimocode", "openclaw", "pi", "workbuddy", "workbuddy_ai",
                          "deepseek_harness",
-                         "opencode", "qwencode", "qwenwork", "kimicode", "prime_agent"]
+                         "opencode", "qwencode", "qwenwork", "kimicode", "musecode", "prime_agent"]
                 .filter { json[$0] != nil }
                 .joined(separator: ",")
             lines.append("json: ok tools: \(tools)")

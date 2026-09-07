@@ -22,6 +22,7 @@ struct UsageToolVisibility: Equatable {
     var opencode = true
     var qwencode = true
     var kimicode = true
+    var musecode = true
 
     static let allVisible = UsageToolVisibility()
 }
@@ -310,6 +311,10 @@ enum UsageSummaryBuilder {
             // 卡片刻意不显示 Kimi 的成本,分享图里也不能凭空冒出来一个数。
             appendTokenTool(&lines, id: "kimicode", name: "Kimi Code",
                             range: usage.kimicode.ranges.get(range), includesCost: false)
+        }
+        if visibility.musecode {
+            appendTokenTool(&lines, id: "musecode", name: "Muse Code",
+                            range: usage.musecode.ranges.get(range))
         }
         return lines
     }
